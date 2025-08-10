@@ -3,7 +3,7 @@
   "short_name": "Calorías",
   "description": "Temporizador que calcula calorías quemadas en tiempo real según MET y peso.",
   "lang": "es-PE",
-  "start_url": "./index.html",
+  "start_url": "/CalorieCounter/",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
