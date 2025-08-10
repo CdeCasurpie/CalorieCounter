@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Contador de Calorías (en tiempo real)</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+  <style>
+    body{font-family:Inter,system-ui,Arial;display:flex;align-items:center;justify-content:center;height:100vh;background:#0f172a;color:#e6eef8;margin:0}
+    .card{background:linear-gradient(180deg,#0b1220,#071023);padding:20px;border-radius:12px;box-shadow:0 8px 30px rgba(2,6,23,0.7);width:340px}
+    label{display:block;font-size:12px;color:#9fb0d7;margin-top:8px}
+    input,select{width:100%;padding:8px;border-radius:8px;border:1px solid #19324a;background:#071827;color:#e6eef8;margin-top:6px}
+    .big{font-size:28px;font-weight:700;margin-top:14px}
+    .small{font-size:14px;color:#9fb0d7}
+    .row{display:flex;gap:8px;margin-top:12px}
+    button{flex:1;padding:10px;border-radius:10px;border:none;background:#0ea5a9;color:#042022;font-weight:700;cursor:pointer}
+    button.secondary{background:#1f2937;color:#cfe9f0}
+    .meta{font-size:12px;color:#7ea6c2;margin-top:8px}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:16px;font-weight:700">Contador de calorías — en tiempo real</div>
+        <div class="small">Presiona "Play" para empezar. Actualiza cada segundo.</div>
+      </div>
+      <div style="font-size:12px;color:#7ea6c2">v1.0</div>
+    </div>
+
+    <label>Peso (kg)</label>
+    <input id="weight" type="number" step="0.1" value="64.2" />
+
+    <label>Actividad</label>
+    <select id="activity">
+      <option value="7">Trotar (≈8 km/h) — MET 7.0</option>
+      <option value="3.5">Caminar rápido — MET 3.5</option>
+      <option value="8.5">Correr 9-10 km/h — MET 8.5</option>
+      <option value="9.5">Saltar (ej. tijeras) — MET 9.5</option>
+      <option value="6">HIIT moderado — MET 6.0</option>
+    </select>
+
+    <div class="row">
+      <button id="start">Play</button>
+      <button id="stop" class="secondary">Pausa</button>
+      <button id="reset" class="secondary">Reset</button>
+    </div>
+
+    <div class="big" id="cal">0.00 kcal</div>
+    <div class="small" id="time">00:00:00</div>
+    <div class="meta">Fórmula: kcal/min = MET × 3.5 × peso(kg) / 200. Ajusta MET si quieres más precisión.</div>
+  </div>
+
+  <script>
+    const weightEl = document.getElementById('weight');
+    const activityEl = document.getElementById('activity');
+    const calEl = document.getElementById('cal');
+    const timeEl = document.getElementById('time');
+    const startBtn = document.getElementById('start');
+    const stopBtn = document.getElementById('stop');
+    const resetBtn = document.getElementById('reset');
+
+    let running = false;
+    let seconds = 0;
+    let timer = null;
+
+    function formatTime(s){
+      const hh = String(Math.floor(s/3600)).padStart(2,'0');
+      const mm = String(Math.floor((s%3600)/60)).padStart(2,'0');
+      const ss = String(s%60).padStart(2,'0');
+      return `${hh}:${mm}:${ss}`;
+    }
+
+    function calcCalories(sec){
+      const weight = Math.max(30, parseFloat(weightEl.value) || 64.2);
+      const met = parseFloat(activityEl.value) || 7;
+      const kcalPerMin = met * 3.5 * weight / 200; // fórmula estándar
+      const kcal = kcalPerMin * (sec/60);
+      return kcal;
+    }
+
+    function tick(){
+      seconds++;
+      const kcal = calcCalories(seconds);
+      calEl.textContent = kcal.toFixed(2) + ' kcal';
+      timeEl.textContent = formatTime(seconds);
+    }
+
+    startBtn.addEventListener('click', ()=>{
+      if(running) return;
+      running = true;
+      timer = setInterval(tick, 1000);
+    });
+
+    stopBtn.addEventListener('click', ()=>{
+      running = false; clearInterval(timer); timer = null;
+    });
+
+    resetBtn.addEventListener('click', ()=>{
+      running = false; clearInterval(timer); timer = null; seconds = 0; calEl.textContent = '0.00 kcal'; timeEl.textContent = '00:00:00';
+    });
+
+    weightEl.addEventListener('input', ()=>{ if(seconds>0) calEl.textContent = calcCalories(seconds).toFixed(2)+' kcal'; });
+    activityEl.addEventListener('change', ()=>{ if(seconds>0) calEl.textContent = calcCalories(seconds).toFixed(2)+' kcal'; });
+  </script>
+</body>
+</html>
